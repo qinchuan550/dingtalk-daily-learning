@@ -33,6 +33,7 @@ jobs:
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
           LEARNING_START_DATE: ${{ vars.LEARNING_START_DATE || '2026-06-15' }}
           LEARNING_TITLE: ${{ vars.LEARNING_TITLE || '高速铁路线路维修每日学习' }}
+          LEARNING_RANDOM_SEED: ${{ vars.LEARNING_RANDOM_SEED || 'dingtalk-daily-learning' }}
           AT_MOBILES: ${{ vars.AT_MOBILES }}
           IS_AT_ALL: ${{ vars.IS_AT_ALL }}
         run: python dingtalk_daily_learning_bot.py --validate-config
@@ -43,6 +44,7 @@ jobs:
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
           LEARNING_START_DATE: ${{ vars.LEARNING_START_DATE || '2026-06-15' }}
           LEARNING_TITLE: ${{ vars.LEARNING_TITLE || '高速铁路线路维修每日学习' }}
+          LEARNING_RANDOM_SEED: ${{ vars.LEARNING_RANDOM_SEED || 'dingtalk-daily-learning' }}
           AT_MOBILES: ${{ vars.AT_MOBILES }}
           IS_AT_ALL: ${{ vars.IS_AT_ALL }}
         run: python dingtalk_daily_learning_bot.py
