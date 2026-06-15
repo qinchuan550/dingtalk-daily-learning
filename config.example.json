@@ -1,0 +1,9 @@
+{
+  "webhook_url": "填入你的钉钉机器人Webhook",
+  "secret": "",
+  "start_date": "2026-06-15",
+  "title": "高速铁路线路维修每日学习",
+  "max_message_chars": 3800,
+  "at_mobiles": [],
+  "is_at_all": false
+}
