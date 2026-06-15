@@ -1,5 +1,5 @@
 {
-  "webhook_url": "https://oapi.dingtalk.com/robot/send?access_token=dfb2f6e31ebb3d56cef29da887f53ba321e84ac9d30c5a99f83b840ff4080c6c",
+  "webhook_url": "https://oapi.dingtalk.com/robot/send?access_token=9f17b5a0d0566409ffa6617fc01171000412b542aee714674d5d580c19d18ead",
   "secret": "",
   "start_date": "2026-06-15",
   "title": "高速铁路线路维修每日学习",
