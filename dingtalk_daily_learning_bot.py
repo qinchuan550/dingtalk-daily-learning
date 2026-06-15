@@ -26,7 +26,7 @@ import urllib.request
 from pathlib import Path
 
 
-PLACEHOLDER_WEBHOOK = "https://oapi.dingtalk.com/robot/send?access_token=dfb2f6e31ebb3d56cef29da887f53ba321e84ac9d30c5a99f83b840ff4080c6c"
+PLACEHOLDER_WEBHOOK = "填入你的钉钉机器人Webhook"
 
 
 def load_json(path: str | Path):
@@ -73,8 +73,8 @@ def load_config(path: str | Path) -> dict:
 def validate_config(config: dict) -> list[str]:
     errors: list[str] = []
     webhook_url = str(config.get("webhook_url", "")).strip()
-    if not webhook_url or PLACEHOLDER_WEBHOOK in webhook_url:
-        errors.append("config.json 里还没有填写 webhook_url")
+    if not webhook_url or PLACEHOLDER_WEBHOOK in webhook_url or "Webhook" in webhook_url:
+        errors.append("还没有填写钉钉机器人 Webhook。GitHub Actions 请配置 Repository secret: DINGTALK_WEBHOOK")
     elif not webhook_url.startswith("https://oapi.dingtalk.com/robot/send?access_token="):
         errors.append("webhook_url 看起来不像钉钉自定义机器人 Webhook")
 
