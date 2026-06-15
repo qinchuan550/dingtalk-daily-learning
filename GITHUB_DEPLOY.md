@@ -50,6 +50,8 @@ DINGTALK_WEBHOOK
 
 值填写钉钉自定义机器人的 Webhook。
 
+注意：一定要填在 `Repository secrets` 里，名字必须完全是 `DINGTALK_WEBHOOK`。不要填到普通 `Variables` 里，也不要写成 `DINGTALK_WEBHOOK_URL`。
+
 如果钉钉机器人开启了“加签”，再新增：
 
 ```text

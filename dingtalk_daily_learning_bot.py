@@ -26,7 +26,7 @@ import urllib.request
 from pathlib import Path
 
 
-PLACEHOLDER_WEBHOOK = "https://oapi.dingtalk.com/robot/send?access_token=dfb2f6e31ebb3d56cef29da887f53ba321e84ac9d30c5a99f83b840ff4080c6c"
+PLACEHOLDER_WEBHOOK = "填入你的钉钉机器人Webhook"
 
 
 def load_json(path: str | Path):
