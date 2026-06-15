@@ -2,8 +2,8 @@ name: DingTalk Daily Learning
 
 on:
   schedule:
-    # Beijing time 20:00 = UTC 12:00.
-    - cron: "0 12 * * *"
+    # Beijing time 13:00 = UTC 05:00.
+    - cron: "0 5 * * *"
   workflow_dispatch:
 
 jobs:
@@ -32,18 +32,21 @@ jobs:
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
           LEARNING_START_DATE: ${{ vars.LEARNING_START_DATE || '2026-06-15' }}
-          LEARNING_TITLE: ${{ vars.LEARNING_TITLE || '高速铁路线路维修每日学习' }}
+          LEARNING_TITLE: ${{ vars.LEARNING_TITLE || 'Daily Learning' }}
           LEARNING_RANDOM_SEED: ${{ vars.LEARNING_RANDOM_SEED || 'dingtalk-daily-learning' }}
           AT_MOBILES: ${{ vars.AT_MOBILES }}
           IS_AT_ALL: ${{ vars.IS_AT_ALL }}
         run: python dingtalk_daily_learning_bot.py --validate-config
+
+      - name: Validate knowledge points JSON
+        run: python dingtalk_daily_learning_bot.py --validate-points
 
       - name: Send daily knowledge point
         env:
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
           LEARNING_START_DATE: ${{ vars.LEARNING_START_DATE || '2026-06-15' }}
-          LEARNING_TITLE: ${{ vars.LEARNING_TITLE || '高速铁路线路维修每日学习' }}
+          LEARNING_TITLE: ${{ vars.LEARNING_TITLE || 'Daily Learning' }}
           LEARNING_RANDOM_SEED: ${{ vars.LEARNING_RANDOM_SEED || 'dingtalk-daily-learning' }}
           AT_MOBILES: ${{ vars.AT_MOBILES }}
           IS_AT_ALL: ${{ vars.IS_AT_ALL }}
