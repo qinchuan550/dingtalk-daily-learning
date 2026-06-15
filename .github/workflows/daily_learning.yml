@@ -1,0 +1,39 @@
+name: DingTalk Daily Learning
+
+on:
+  schedule:
+    # Beijing time 20:00 = UTC 12:00.
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate DingTalk config
+        env:
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+          LEARNING_START_DATE: ${{ vars.LEARNING_START_DATE || '2026-06-15' }}
+          LEARNING_TITLE: ${{ vars.LEARNING_TITLE || '高速铁路线路维修每日学习' }}
+          AT_MOBILES: ${{ vars.AT_MOBILES }}
+          IS_AT_ALL: ${{ vars.IS_AT_ALL }}
+        run: python dingtalk_daily_learning_bot.py --validate-config
+
+      - name: Send daily knowledge point
+        env:
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+          LEARNING_START_DATE: ${{ vars.LEARNING_START_DATE || '2026-06-15' }}
+          LEARNING_TITLE: ${{ vars.LEARNING_TITLE || '高速铁路线路维修每日学习' }}
+          AT_MOBILES: ${{ vars.AT_MOBILES }}
+          IS_AT_ALL: ${{ vars.IS_AT_ALL }}
+        run: python dingtalk_daily_learning_bot.py
