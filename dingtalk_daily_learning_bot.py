@@ -26,7 +26,7 @@ import urllib.request
 from pathlib import Path
 
 
-PLACEHOLDER_WEBHOOK = "PLEASE_SET_DINGTALK_WEBHOOK"
+PLACEHOLDER_WEBHOOK = "填入你的钉钉机器人Webhook"
 
 
 def load_json(path: str | Path):
@@ -39,6 +39,7 @@ def load_config(path: str | Path) -> dict:
         "secret": "",
         "start_date": "2026-06-15",
         "title": "高速铁路线路维修每日学习",
+        "random_seed": "dingtalk-daily-learning",
         "max_message_chars": 3800,
         "at_mobiles": [],
         "is_at_all": False,
@@ -52,6 +53,7 @@ def load_config(path: str | Path) -> dict:
         "DINGTALK_SECRET": "secret",
         "LEARNING_START_DATE": "start_date",
         "LEARNING_TITLE": "title",
+        "LEARNING_RANDOM_SEED": "random_seed",
         "MAX_MESSAGE_CHARS": "max_message_chars",
     }
     for env_name, key in env_map.items():
@@ -97,9 +99,18 @@ def validate_config(config: dict) -> list[str]:
     return errors
 
 
-def pick_point(points: list[dict], start_date: str, target_date: dt.date) -> tuple[int, dict]:
+def pick_point(points: list[dict], start_date: str, target_date: dt.date, random_seed: str) -> tuple[int, dict]:
     start = dt.date.fromisoformat(start_date)
-    index = (target_date - start).days % len(points)
+    day_number = max((target_date - start).days, 0)
+    cycle = day_number // len(points)
+    offset = day_number % len(points)
+    order = sorted(
+        range(len(points)),
+        key=lambda i: hashlib.sha256(
+            f"{random_seed}:{cycle}:{points[i].get('id', i)}".encode("utf-8")
+        ).hexdigest(),
+    )
+    index = order[offset]
     return index + 1, points[index]
 
 
@@ -117,7 +128,6 @@ def signed_webhook(webhook_url: str, secret: str | None) -> str:
 def build_payload(config: dict, point_index: int, total: int, point: dict) -> dict:
     title = config.get("title", "每日学习")
     text = point["message"]
-    text += f"\n\n今日进度：{point_index}/{total}"
     max_chars = int(config.get("max_message_chars", 3800))
     if max_chars > 0 and len(text) > max_chars:
         text = text[:max_chars].rstrip() + "\n\n（内容较长，已自动截断；完整内容见 knowledge_points.md）"
@@ -164,7 +174,8 @@ def send_once(args: argparse.Namespace) -> None:
     target_date = dt.date.fromisoformat(args.date) if args.date else dt.date.today()
     start_date = config.get("start_date", "2026-06-15")
 
-    point_index, point = pick_point(points, start_date, target_date)
+    random_seed = str(config.get("random_seed", "dingtalk-daily-learning"))
+    point_index, point = pick_point(points, start_date, target_date, random_seed)
     payload = build_payload(config, point_index, len(points), point)
 
     if args.dry_run:
