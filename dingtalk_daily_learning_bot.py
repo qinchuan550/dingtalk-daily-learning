@@ -7,8 +7,8 @@
    python dingtalk_daily_learning_bot.py --dry-run
 2. 发送今天的内容：
    python dingtalk_daily_learning_bot.py
-3. 常驻运行，每天 20:00 自动发送：
-   python dingtalk_daily_learning_bot.py --daemon --send-time 20:00
+3. 常驻运行，每天 13:00 自动发送：
+   python dingtalk_daily_learning_bot.py --daemon --send-time 13:00
 """
 
 from __future__ import annotations
@@ -33,9 +33,22 @@ def load_json(path: str | Path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
+def load_points(path: str | Path) -> list[dict]:
+    points = load_json(path)
+    if not isinstance(points, list) or not points:
+        raise ValueError("knowledge_points.json 必须是非空 JSON 数组")
+    for index, point in enumerate(points, start=1):
+        if not isinstance(point, dict):
+            raise ValueError(f"第 {index} 条知识点不是 JSON 对象")
+        if not point.get("message"):
+            raise ValueError(f"第 {index} 条知识点缺少 message 字段")
+    return points
+
+
 def load_config(path: str | Path) -> dict:
     config = {
         "webhook_url": "",
+        "webhook_urls": [],
         "secret": "",
         "start_date": "2026-06-15",
         "title": "高速铁路线路维修每日学习",
@@ -61,6 +74,10 @@ def load_config(path: str | Path) -> dict:
         if value:
             config[key] = value
 
+    webhook_urls = os.getenv("DINGTALK_WEBHOOKS")
+    if webhook_urls:
+        config["webhook_urls"] = split_multi_value(webhook_urls)
+
     at_mobiles = os.getenv("AT_MOBILES")
     if at_mobiles:
         config["at_mobiles"] = [item.strip() for item in at_mobiles.split(",") if item.strip()]
@@ -72,13 +89,44 @@ def load_config(path: str | Path) -> dict:
     return config
 
 
+def split_multi_value(value: str) -> list[str]:
+    items: list[str] = []
+    for line in value.replace(";", "\n").replace(",", "\n").splitlines():
+        item = line.strip()
+        if item:
+            items.append(item)
+    return items
+
+
+def get_webhook_urls(config: dict) -> list[str]:
+    urls: list[str] = []
+    configured_urls = config.get("webhook_urls", [])
+    if isinstance(configured_urls, str):
+        urls.extend(split_multi_value(configured_urls))
+    elif isinstance(configured_urls, list):
+        urls.extend(str(item).strip() for item in configured_urls if str(item).strip())
+
+    single_url = str(config.get("webhook_url", "")).strip()
+    if single_url:
+        urls.append(single_url)
+
+    deduped: list[str] = []
+    for url in urls:
+        if url not in deduped:
+            deduped.append(url)
+    return deduped
+
+
 def validate_config(config: dict) -> list[str]:
     errors: list[str] = []
-    webhook_url = str(config.get("webhook_url", "")).strip()
-    if not webhook_url or PLACEHOLDER_WEBHOOK in webhook_url or "Webhook" in webhook_url:
-        errors.append("还没有填写钉钉机器人 Webhook。GitHub Actions 请配置 Repository secret: DINGTALK_WEBHOOK")
-    elif not webhook_url.startswith("https://oapi.dingtalk.com/robot/send?access_token="):
-        errors.append("webhook_url 看起来不像钉钉自定义机器人 Webhook")
+    webhook_urls = get_webhook_urls(config)
+    if not webhook_urls:
+        errors.append("还没有填写钉钉机器人 Webhook。GitHub Actions 请配置 Repository secret: DINGTALK_WEBHOOK 或 DINGTALK_WEBHOOKS")
+    for index, webhook_url in enumerate(webhook_urls, start=1):
+        if PLACEHOLDER_WEBHOOK in webhook_url or "Webhook" in webhook_url:
+            errors.append(f"第 {index} 个 webhook 仍是占位文本")
+        elif not webhook_url.startswith("https://oapi.dingtalk.com/robot/send?access_token="):
+            errors.append(f"第 {index} 个 webhook 看起来不像钉钉自定义机器人 Webhook")
 
     start_date = str(config.get("start_date", "")).strip()
     try:
@@ -170,7 +218,7 @@ def send_once(args: argparse.Namespace) -> None:
     if errors and not args.dry_run:
         raise ValueError("配置未完成：\n- " + "\n- ".join(errors))
 
-    points = load_json(args.points)
+    points = load_points(args.points)
     target_date = dt.date.fromisoformat(args.date) if args.date else dt.date.today()
     start_date = config.get("start_date", "2026-06-15")
 
@@ -182,9 +230,11 @@ def send_once(args: argparse.Namespace) -> None:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return
 
-    webhook_url = config.get("webhook_url", "").strip()
-    result = send_dingtalk(webhook_url, payload, config.get("secret") or None)
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    results = []
+    for index, webhook_url in enumerate(get_webhook_urls(config), start=1):
+        result = send_dingtalk(webhook_url, payload, config.get("secret") or None)
+        results.append({"index": index, "result": result})
+    print(json.dumps(results, ensure_ascii=False, indent=2))
 
 
 def daemon_loop(args: argparse.Namespace) -> None:
@@ -202,17 +252,21 @@ def daemon_loop(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="每日 20:00 推送一个学习知识点到钉钉群")
+    parser = argparse.ArgumentParser(description="每日 13:00 推送一个学习知识点到钉钉群")
     parser.add_argument("--config", default="config.json", help="配置文件")
     parser.add_argument("--points", default="knowledge_points.json", help="知识点 JSON")
     parser.add_argument("--date", help="指定发送日期，格式 YYYY-MM-DD；默认今天")
     parser.add_argument("--dry-run", action="store_true", help="只预览，不发送")
     parser.add_argument("--validate-config", action="store_true", help="检查配置是否已可发送")
+    parser.add_argument("--validate-points", action="store_true", help="检查知识点 JSON 是否完整")
     parser.add_argument("--daemon", action="store_true", help="常驻运行，按 --send-time 定时发送")
-    parser.add_argument("--send-time", default="20:00", help="daemon 模式发送时间，默认 20:00")
+    parser.add_argument("--send-time", default="13:00", help="daemon 模式发送时间，默认 13:00")
     args = parser.parse_args()
 
-    if args.validate_config:
+    if args.validate_points:
+        points = load_points(args.points)
+        print(f"知识点检查通过：{len(points)} 条")
+    elif args.validate_config:
         errors = validate_config(load_config(args.config))
         if errors:
             raise SystemExit("配置未完成：\n- " + "\n- ".join(errors))
