@@ -34,7 +34,7 @@ jobs:
           DINGTALK_WEBHOOKS: ${{ secrets.DINGTALK_WEBHOOKS }}
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
           LEARNING_START_DATE: ${{ vars.LEARNING_START_DATE || '2026-06-15' }}
-          LEARNING_TITLE: ${{ vars.LEARNING_TITLE || 'Daily Learning' }}
+          LEARNING_TITLE: ${{ vars.LEARNING_TITLE }}
           LEARNING_RANDOM_SEED: ${{ vars.LEARNING_RANDOM_SEED || 'dingtalk-daily-learning' }}
           AT_MOBILES: ${{ vars.AT_MOBILES }}
           IS_AT_ALL: ${{ vars.IS_AT_ALL }}
@@ -49,7 +49,7 @@ jobs:
           DINGTALK_WEBHOOKS: ${{ secrets.DINGTALK_WEBHOOKS }}
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
           LEARNING_START_DATE: ${{ vars.LEARNING_START_DATE || '2026-06-15' }}
-          LEARNING_TITLE: ${{ vars.LEARNING_TITLE || 'Daily Learning' }}
+          LEARNING_TITLE: ${{ vars.LEARNING_TITLE }}
           LEARNING_RANDOM_SEED: ${{ vars.LEARNING_RANDOM_SEED || 'dingtalk-daily-learning' }}
           AT_MOBILES: ${{ vars.AT_MOBILES }}
           IS_AT_ALL: ${{ vars.IS_AT_ALL }}
