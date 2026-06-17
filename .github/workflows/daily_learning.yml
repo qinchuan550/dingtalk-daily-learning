@@ -21,15 +21,17 @@ jobs:
       - name: Check required DingTalk secret
         env:
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_WEBHOOKS: ${{ secrets.DINGTALK_WEBHOOKS }}
         run: |
-          if [ -z "$DINGTALK_WEBHOOK" ]; then
-            echo "::error::DINGTALK_WEBHOOK is empty. Please add it in Settings -> Secrets and variables -> Actions -> Repository secrets."
+          if [ -z "$DINGTALK_WEBHOOK" ] && [ -z "$DINGTALK_WEBHOOKS" ]; then
+            echo "::error::DINGTALK_WEBHOOK or DINGTALK_WEBHOOKS is empty. Please add one of them in Settings -> Secrets and variables -> Actions -> Repository secrets."
             exit 1
           fi
 
       - name: Validate DingTalk config
         env:
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_WEBHOOKS: ${{ secrets.DINGTALK_WEBHOOKS }}
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
           LEARNING_START_DATE: ${{ vars.LEARNING_START_DATE || '2026-06-15' }}
           LEARNING_TITLE: ${{ vars.LEARNING_TITLE || 'Daily Learning' }}
@@ -44,6 +46,7 @@ jobs:
       - name: Send daily knowledge point
         env:
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_WEBHOOKS: ${{ secrets.DINGTALK_WEBHOOKS }}
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
           LEARNING_START_DATE: ${{ vars.LEARNING_START_DATE || '2026-06-15' }}
           LEARNING_TITLE: ${{ vars.LEARNING_TITLE || 'Daily Learning' }}
